@@ -1,28 +1,43 @@
-## 1. High-Performance Limit Order Book (LOB) & Matching Engine in C++
+# High-Performance Limit Order Book (LOB) & Matching Engine
 
-* **Project Size:** Compact (~500 - 1,500 lines of code)
-* **Estimated Difficulty:** Advanced
+A high-performance Limit Order Book (LOB) and matching engine implementation in C++ focused on low-latency order processing, efficient memory management, and realistic exchange-style price-time priority matching.
+
+## Overview
+
+This project demonstrates the core architecture used in modern electronic trading systems:
+
+- Price-Time Priority Matching
+- Limit Orders
+- Market Orders
+- Order Cancellation
+- Object Pooling
+- O(1) Order Lookup
+- Benchmarking Framework
+- Low-Latency Memory Management
+
+The implementation includes a synthetic benchmark that executes 1,000,000 order operations and reports latency and throughput statistics.
 
 ---
 
-### Why it is valuable for a Quant Developer
-Proprietary trading firms and market makers live and die by execution speed. Understanding the internal mechanics of a limit order book (**price-time priority matching**) is a fundamental requirement for anyone working on execution desks or market connectivity.
+## Features
 
-### What skills it demonstrates
-* **Low-Latency C++ Patterns:** Object pooling to avoid heap allocation overhead (`malloc`/`free` during rapid trades), memory alignment, and cache locality.
-* **Optimal Data Structures:** Combining **doubly-linked lists** (to represent orders at a specific price level for $O(1)$ insertions/deletions) with a **hash map** (for $O(1)$ order lookups by ID) to achieve overall **$O(1)$ time complexity** for additions, cancellations, and execution.
-* **Modern C++:** Practical application of C++17/C++20 features, smart pointers, templates, and strict profiling.
+### Matching Engine
 
-### Why it stands out on a Resume
-Unlike standard CRUD applications, this project allows you to put concrete performance numbers on your resume. 
+- Buy and Sell order books
+- Price-Time (FIFO) execution priority
+- Limit order support
+- Market order support
+- Partial fills
+- Full fills
+- Order cancellation
 
-> **Resume Impact Example:** > *"Designed a C++ matching engine that processes over 5 million orders per second with sub-microsecond latency, profiled and optimized using Valgrind and gprof."*
+### Performance Optimizations
 
----
+#### Object Pooling
 
-### High-Level Implementation Roadmap
+Orders and price levels are pre-allocated to avoid heap allocations on the critical execution path.
 
-1.  **Define Structures:** Create the core data layers—an `Order` struct, a `Limit` price-level struct (holding a doubly-linked list of orders), and the main `Book` struct.
-2.  **Implement LOB Logic:** Build out robust functions for `add_order`, `cancel_order`, and `execute_order`. Ensure bids and asks are strictly sorted using a binary search tree or a flat array map for price levels.
-3.  **Engine Matching:** Write the execution matching rules. When a buy market order arrives, match it against the lowest ask price levels sequentially until it is either completely filled or the book runs out of liquidity.
-4.  **Benchmark & Profile:** Write a rigorous test harness that generates millions of randomized orders. Profile the application for CPU cache misses, memory bottlenecks, and hot paths using tools like `perf` or `valgrind`.
+#### Cache-Friendly Design
+
+```cpp
+struct alignas(64) Order
